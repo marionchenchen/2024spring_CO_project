@@ -1,0 +1,26 @@
+#1. add overflow
+[00400008] 3c017fff lui $1, 0x7FFF                  ;Load max positive int
+[0040000c] 3427ffff ori $7, $1, 0xFFFF
+[00400010] 3c010000 lui $2, $zero                  ; 36: li      $a3, 0xa114514a # test li (lui, ori)
+[00400014] 34270001 ori $8, $2, 0x1
+[00400018] 01095020 add $9, $8, $7             ; Overflow should occur here if detected
+
+#2. branch at memory boundary
+[00400008] 14000000 bne $zero, $zero, 0x00400000 # Jump to an out-of-bound address
+
+#3. illegal operation
+[00400008] ffffff ; incorrect bit number
+[0040000c] 5A21800 ; undefind operation
+
+#4. positive and negative offset
+3c 01 00 98 //[00400000]  lui $1, 152                     ; 16: addi $t0, $zero, 10008000 # Load base address of array
+34 28 b5 c0 //[00400004]  ori $8, $1, -19008
+8d 09 00 04 //[00400008]  lw $9, 4($8)                    ; 17: lw $t1, 4($t0) # Load array[1] with positive offset
+ad 09 ff fc //[0040000c]  sw $9, -4($8)                   ; 18: sw $t1, -4($t0)# Store into array[-1] with negative offset (undefined behavior)
+
+
+#5. Memory Alignment
+3c 01 00 98 //[00400000]  lui $1, 152                     ; 16: addi $t0, $zero, 10008000 # Load base address of array
+34 28 b5 c0 //[00400004]  ori $8, $1, -19008
+25 08 00 01 //    addiu $t0, $t0, 1           # 故意将地址加1，使其变为非对齐
+8D 09 00 00 //   lw $t1, 0($t0)              # 从非对齐的地址加载一个字到 $t1

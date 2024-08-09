@@ -1,0 +1,27 @@
+#add overflow
+3c 01 7f ff //[00400008]  lui $1, 0x7FFF                  ;Load max positive int
+34 28 ff ff //[0040000c]  ori $8, $1, 0xFFFF
+3c 01 00 00 //[00400010]  lui $2, $zero                  ; 36: li      $a3, 0xa114514a # test li (lui, ori)
+34 49 00 01 //[00400014]  ori $9, $2, 0x1
+01 28 50 20 //[00400018]  add $10, $9, $8             ; Overflow should occur here if detected
+
+#4. positive and negative offset
+3c 01 10 00 //[00400000]  lui $1, 152                     ; 16: addi $t0, $zero, 10008000 # Load base address of array
+34 28 80 00 //[00400004]  ori $8, $1, -19008
+8d 09 00 04 //[00400008]  lw $9, 4($8)                    ; 17: lw $t1, 4($t0) # Load array[1] with positive offset
+ad 09 ff fc //[0040000c]  sw $9, -4($8)                   ; 18: sw $t1, -4($t0)# Store into array[-1] with negative offset (undefined behavior)
+
+#5. Memory Alignment
+3c 01 10 00 //[00400074]  lui $1, 4096                    ; 37: li      $t0, 0x10008000
+34 28 80 00 //[00400078] 34288000 ori $8, $1, -32768
+25 08 00 01 //    addiu $8, $8, 1           # 故意将地址加1，使其变为非对齐
+8D 09 00 00 //   lw $9, 0($t0)              # 从非对齐的地址加载一个字到 $t1
+
+
+
+#2. branch at memory boundary
+14 00 00 00 //[00400008]  bne $zero, $zero, 0x00400000 # Jump to an out-of-bound address
+
+#3. illegal operation
+ff ff ff f //[00400008]  ; incorrect bit number
+5A 21 80 00 [0040000c]; undefind operation

@@ -1,0 +1,15 @@
+8f 85 00 04  // [00400000]  lw $5, 4($28)
+8f 86 00 08  // [00400004]  lw $6, 8($28)
+8f 87 00 0c  // [00400008]  lw $7, 12($28) 
+af 87 00 10  // [0040000c]  sw $7, 16($28) #lw->sw: load-use hazard, stall 1 cycle and forward from MEM/WB stage
+00 a6 40 20  // [00400010]  add $8, $5, $6
+af 88 00 14  // [00400014]  sw $8, 20($28) #alu operation->sw forward form MEM/WB stage
+8f 87 00 08  // [00400018]  lw $7, 8($28)
+10 E6 00 06  // [0040001c]  beq $7, $6, 24  #lw->beq :load-use hazard, stall 2 cycles and forward from MEM/WB stage
+00 05 88 20  // [00400034] add $17, $0, $5                 ; 23: add     $s1, $0, $a1    # will this executed even branch is taken? How about others?
+00 06 90 20  // [00400038] add $18, $0, $6                 ; 24: add     $s2, $0, $a2
+00 07 98 20  // [0040003c] add $19, $0, $7                 ; 25: add     $s3, $0, $a3
+00 c6 a0 20  // [00400040] add $20, $6, $6                 ; 26: add     $s4, $a2, $a2
+00 c7 a8 20  // [00400044] add $21, $6, $7                 ; 27: add     $s5, $a2, $a3
+00 e7 b0 20  // [00400048] add $22, $7, $7                 ; 28: add     $s6, $a3, $a3
+02 86 b8 20  // [0040004c] add $23, $20, $6                ; 29: add     $s7, $s4, $a2   # s7 = 2
